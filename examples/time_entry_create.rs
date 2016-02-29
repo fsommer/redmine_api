@@ -16,6 +16,6 @@ fn main() {
         comments: "Test am Sonntag".to_string(),
     };
 
-    let result = redmine.time_entries.create(time_entry);
+    let result = redmine.time_entries.create(&time_entry);
     println!("Result: {}", result);
 }

@@ -10,7 +10,7 @@ impl Api {
         }
     }
 
-    pub fn create(&self, time_entry: TimeEntry) -> bool {
+    pub fn create(&self, time_entry: &TimeEntry) -> bool {
         let object = format!(
             "{{\n
                 \"time_entry\": {{\n
