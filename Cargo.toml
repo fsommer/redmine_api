@@ -4,5 +4,6 @@ version = "0.0.1"
 authors = ["Florian Sommer <fsommer1986@gmail.com>"]
 
 [dependencies]
+rustc-serialize = "0.3.18"
 hyper = "0.7.2"
 url = "0.5.5"

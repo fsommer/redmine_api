@@ -1,4 +1,5 @@
 use super::RedmineClient;
+use rustc_serialize::json;
 
 pub struct Api {
     client: RedmineClient,
@@ -11,24 +12,12 @@ impl Api {
     }
 
     pub fn create(&self, time_entry: &TimeEntry) -> bool {
-        let object = format!(
-            "{{\n
-                \"time_entry\": {{\n
-                    \"issue_id\": {},\n
-                    \"hours\": {},\n
-                    \"activity_id\": {},\n
-                    \"comments\": \"{}\"\n
-                }}\n
-            }}",
-            time_entry.issue_id,
-            time_entry.hours,
-            time_entry.activity_id,
-            time_entry.comments,
-        );
-        self.client.create("/time_entries.json", &object)
+        let json = json::encode(time_entry).unwrap();
+        self.client.create("/time_entries.json", &json)
     }
 }
 
+#[derive(RustcDecodable, RustcEncodable)]
 pub struct TimeEntry {
     pub issue_id: u32,
     pub hours: f32,
