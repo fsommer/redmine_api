@@ -12,7 +12,7 @@ impl Api {
     }
 
     pub fn create(&self, time_entry: &TimeEntry) -> bool {
-        let json = json::encode(time_entry).unwrap();
+        let json = json::encode(&CreateTimeEntry { time_entry: time_entry }).unwrap();
         self.client.create("/time_entries.json", &json)
     }
 }
@@ -23,4 +23,9 @@ pub struct TimeEntry {
     pub hours: f32,
     pub activity_id: u8,
     pub comments: String,
+}
+
+#[derive(RustcEncodable)]
+struct CreateTimeEntry<'a> {
+    time_entry: &'a TimeEntry,
 }
