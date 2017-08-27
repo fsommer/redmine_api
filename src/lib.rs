@@ -62,24 +62,12 @@ impl RedmineClient {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Activity {
-    id: u32,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Issue {
+pub struct Object {
     id: u32,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Project {
-    id: u32,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct User {
+pub struct NamedObject {
     id: u32,
     name: String,
 }

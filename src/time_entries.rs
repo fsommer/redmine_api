@@ -1,6 +1,6 @@
 extern crate serde_json;
 
-use super::{Activity, Issue, Project, User};
+use super::{Object, NamedObject};
 use super::RedmineClient;
 
 pub struct Api {
@@ -41,13 +41,13 @@ pub struct TimeEntryList {
 
 #[derive(Deserialize, Debug)]
 pub struct TimeEntryListItem {
-    pub activity: Activity,
+    pub activity: NamedObject,
     pub comments: String,
     pub hours: f32,
     pub id: u32,
-    pub issue: Issue,
-    pub project: Project,
-    pub user: User,
+    pub issue: Object,
+    pub project: NamedObject,
+    pub user: Object,
     pub spent_on: String,
     pub created_on: String,
     pub updated_on: String,
