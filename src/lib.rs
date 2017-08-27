@@ -5,6 +5,7 @@ extern crate serde;
 
 pub mod time_entries;
 
+use std::io::Read;
 use reqwest::{Client, Url};
 use serde::ser::Serialize;
 
@@ -31,6 +32,17 @@ impl RedmineClient {
         }
     }
 
+    fn list(&self, path: &str) -> String {
+        let mut response = Client::new().unwrap()
+            .get(self.get_base_url(path).as_str()).unwrap()
+            .send().unwrap();
+
+        let mut result = String::new();
+        response.read_to_string(&mut result).unwrap();
+
+        result
+    }
+
     fn create<T: Serialize>(&self, path: &str, object: &T) -> bool {
         Client::new().unwrap()
             .post(self.get_base_url(path).as_str()).unwrap()
@@ -47,4 +59,27 @@ impl RedmineClient {
 
         url
     }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Activity {
+    id: u32,
+    name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Issue {
+    id: u32,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Project {
+    id: u32,
+    name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct User {
+    id: u32,
+    name: String,
 }

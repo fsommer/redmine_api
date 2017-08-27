@@ -7,3 +7,4 @@ authors = ["Florian Sommer <fsommer1986@gmail.com>"]
 reqwest = "0.7"
 serde = "1.0"
 serde_derive = "1.0"
+serde_json = "1.0"

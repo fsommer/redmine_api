@@ -1,3 +1,6 @@
+extern crate serde_json;
+
+use super::{Activity, Issue, Project, User};
 use super::RedmineClient;
 
 pub struct Api {
@@ -8,6 +11,12 @@ impl Api {
         Api {
             client: client,
         }
+    }
+
+    pub fn list(&self) -> TimeEntryList {
+        let result = self.client.list("/time_entries.json");
+
+        serde_json::from_str(&result).unwrap()
     }
 
     pub fn create(&self, time_entry: &TimeEntry) -> bool {
@@ -23,6 +32,25 @@ pub struct TimeEntry {
     pub hours: f32,
     pub activity_id: u8,
     pub comments: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct TimeEntryList {
+    time_entries: Vec<TimeEntryListItem>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct TimeEntryListItem {
+    pub activity: Activity,
+    pub comments: String,
+    pub hours: f32,
+    pub id: u32,
+    pub issue: Issue,
+    pub project: Project,
+    pub user: User,
+    pub spent_on: String,
+    pub created_on: String,
+    pub updated_on: String,
 }
 
 #[derive(Serialize)]
