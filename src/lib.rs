@@ -3,6 +3,7 @@
 extern crate reqwest;
 extern crate serde;
 
+pub mod issues;
 pub mod time_entries;
 
 use std::io::Read;
@@ -10,12 +11,14 @@ use reqwest::{Client, Url};
 use serde::ser::Serialize;
 
 pub struct RedmineApi {
+    pub issues: issues::Api,
     pub time_entries: time_entries::Api,
 }
 impl RedmineApi {
     pub fn new(host: String, apikey: String) -> RedmineApi {
         RedmineApi {
-            time_entries: time_entries::Api::new(RedmineClient::new(host, apikey)),
+            issues: issues::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
+            time_entries: time_entries::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
         }
     }
 }
