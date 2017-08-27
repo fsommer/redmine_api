@@ -1,5 +1,6 @@
 extern crate serde_json;
 
+use std::collections::HashMap;
 use super::{Object, NamedObject};
 use super::RedmineClient;
 
@@ -14,7 +15,7 @@ impl Api {
     }
 
     pub fn list(&self) -> TimeEntryList {
-        let result = self.client.list("/time_entries.json");
+        let result = self.client.list("/time_entries.json", &HashMap::new());
 
         serde_json::from_str(&result).unwrap()
     }

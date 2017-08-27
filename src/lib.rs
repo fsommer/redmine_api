@@ -6,6 +6,7 @@ extern crate serde;
 pub mod issues;
 pub mod time_entries;
 
+use std::collections::HashMap;
 use std::io::Read;
 use reqwest::{Client, Url};
 use serde::ser::Serialize;
@@ -23,6 +24,7 @@ impl RedmineApi {
     }
 }
 
+#[derive(Clone)]
 pub struct RedmineClient {
     host: String,
     apikey: String,
@@ -35,9 +37,15 @@ impl RedmineClient {
         }
     }
 
-    fn list(&self, path: &str) -> String {
+    fn list(&self, path: &str, params: &HashMap<&str, String>) -> String {
+        let mut url = self.get_base_url(path);
+
+        for (key, value) in params {
+            url.query_pairs_mut().append_pair(key, value);
+        }
+
         let mut response = Client::new().unwrap()
-            .get(self.get_base_url(path).as_str()).unwrap()
+            .get(url.as_str()).unwrap()
             .send().unwrap();
 
         let mut result = String::new();

@@ -1,5 +1,6 @@
 extern crate serde_json;
 
+use std::collections::HashMap;
 use super::NamedObject;
 use super::RedmineClient;
 
@@ -14,9 +15,11 @@ impl Api {
     }
 
     pub fn list(&self) -> IssueList {
-        let result = self.client.list("/issues.json");
+        self.filter().list()
+    }
 
-        serde_json::from_str(&result).unwrap()
+    pub fn filter(&self) -> IssueFilter {
+        IssueFilter::new(self.client.clone())
     }
 //
 //    pub fn create(&self, time_entry: &TimeEntry) -> bool {
@@ -24,6 +27,58 @@ impl Api {
 //            time_entry: time_entry
 //        })
 //    }
+}
+
+pub struct IssueFilter {
+    client: RedmineClient,
+    assigned_to_id: Option<u32>,
+    issue_id: Vec<u32>,
+    parent_id: Option<u32>,
+    project_id: Option<u32>,
+    status_id: Option<u32>,
+    subproject_id: Option<u32>,
+    tracker_id: Option<u32>,
+}
+impl IssueFilter {
+    fn new(client: RedmineClient) -> IssueFilter {
+        IssueFilter {
+            client: client,
+            assigned_to_id: None,
+            issue_id: Vec::new(),
+            parent_id: None,
+            project_id: None,
+            status_id: None,
+            subproject_id: None,
+            tracker_id: None,
+        }
+    }
+//
+//    pub fn with_issue_id(&mut self, id: u32) -> &mut IssueFilter {
+//        self.issue_id.push(id);
+//        self
+//    }
+
+    pub fn with_tracker_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.tracker_id = Some(id);
+        self
+    }
+
+    pub fn list(&self) -> IssueList {
+        let mut params: HashMap<&str, String> = HashMap::new();
+//
+//        if self.issue_id.len() > 0 {
+//            let issue_id: String = self.issue_id.join(",");
+//            params.insert("issue_id", issue_id);
+//        }
+
+        if let Some(id) = self.tracker_id {
+            params.insert("tracker_id", id.to_string());
+        }
+
+        let result = self.client.list("/issues.json", &params);
+
+        serde_json::from_str(&result).unwrap()
+    }
 }
 
 #[derive(Deserialize, Debug)]
