@@ -41,7 +41,7 @@ impl RedmineClient {
         url.set_query_from_pairs(options);
 
         let client = reqwest::Client::new().unwrap();
-        client.request(reqwest::Method::Post, &url.serialize()).unwrap()
+        client.post(&url.serialize()).unwrap()
             .json(object).unwrap()
             .send().unwrap();
 
