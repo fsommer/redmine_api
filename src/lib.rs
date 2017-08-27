@@ -2,12 +2,10 @@
 
 extern crate reqwest;
 extern crate serde;
-extern crate url;
 
 pub mod time_entries;
 
 use serde::ser::Serialize;
-use self::url::Url;
 
 pub struct RedmineApi {
     pub time_entries: time_entries::Api,
@@ -34,20 +32,18 @@ impl RedmineClient {
 
     fn create<T: Serialize>(&self, path: &str, object: &T) -> bool {
         let client = reqwest::Client::new().unwrap();
-        client.post(&self.get_base_url(path).serialize()).unwrap()
+        client.post(self.get_base_url(path).as_str()).unwrap()
             .json(object).unwrap()
             .send().unwrap();
 
         true
     }
 
-    fn get_base_url(&self, path: &str) -> Url {
-        let mut options = Vec::new();
-        options.push(("key", &self.apikey));
-
+    fn get_base_url(&self, path: &str) -> reqwest::Url {
         let url_string = self.host.clone() + path;
-        let mut url = Url::parse(&url_string).unwrap();
-        url.set_query_from_pairs(options);
+        let mut url = reqwest::Url::parse(&url_string).unwrap();
+        url.query_pairs_mut()
+            .append_pair("key", &self.apikey);
 
         url
     }
