@@ -33,6 +33,15 @@ impl RedmineClient {
     }
 
     fn create<T: Serialize>(&self, path: &str, object: &T) -> bool {
+        let client = reqwest::Client::new().unwrap();
+        client.post(&self.get_base_url(path).serialize()).unwrap()
+            .json(object).unwrap()
+            .send().unwrap();
+
+        true
+    }
+
+    fn get_base_url(&self, path: &str) -> Url {
         let mut options = Vec::new();
         options.push(("key", &self.apikey));
 
@@ -40,11 +49,6 @@ impl RedmineClient {
         let mut url = Url::parse(&url_string).unwrap();
         url.set_query_from_pairs(options);
 
-        let client = reqwest::Client::new().unwrap();
-        client.post(&url.serialize()).unwrap()
-            .json(object).unwrap()
-            .send().unwrap();
-
-        true
+        url
     }
 }
