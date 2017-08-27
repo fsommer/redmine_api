@@ -5,14 +5,14 @@ use redmine_api::time_entries::TimeEntry;
 
 fn main() {
     let redmine = RedmineApi::new(
-        "http://localhost:10083".to_string(),
-        "9d61c6c2696289c545673daad62272a3ea91f3ef".to_string(),
+        "http://localhost:8080".to_string(),
+        "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
     let time_entry = TimeEntry {
         issue_id: 1,
         hours: 0.1,
-        activity_id: 2,
+        activity_id: 4,
         comments: "Test am Sonntag".to_string(),
     };
 
