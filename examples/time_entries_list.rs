@@ -8,6 +8,6 @@ fn main() {
         "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
-    let result = redmine.time_entries.list();
+    let result = redmine.time_entries().list();
     println!("Result: {:?}", result);
 }

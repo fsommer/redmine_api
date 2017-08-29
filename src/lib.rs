@@ -12,8 +12,8 @@ use reqwest::{Client, Url};
 use serde::ser::Serialize;
 
 pub struct RedmineApi {
-    pub issues: issues::Api,
-    pub time_entries: time_entries::Api,
+    issues: issues::Api,
+    time_entries: time_entries::Api,
 }
 impl RedmineApi {
     pub fn new(host: String, apikey: String) -> RedmineApi {
@@ -21,6 +21,14 @@ impl RedmineApi {
             issues: issues::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
             time_entries: time_entries::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
         }
+    }
+
+    pub fn issues(&self) -> &issues::Api {
+        &self.issues
+    }
+
+    pub fn time_entries(&self) -> &time_entries::Api {
+        &self.time_entries
     }
 }
 
