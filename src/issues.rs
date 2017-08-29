@@ -90,6 +90,14 @@ impl IssueFilter {
 pub struct IssueList {
     issues: Vec<IssueListItem>,
 }
+impl IntoIterator for IssueList {
+    type Item = IssueListItem;
+    type IntoIter = ::std::vec::IntoIter<IssueListItem>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.issues.into_iter()
+    }
+}
 
 #[derive(Deserialize, Debug)]
 pub struct IssueListItem {
