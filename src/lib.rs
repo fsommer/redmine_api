@@ -7,6 +7,7 @@ pub mod issues;
 pub mod time_entries;
 
 use std::collections::HashMap;
+use std::error::Error;
 use std::io::Read;
 use std::rc::Rc;
 use reqwest::{Client, Url};
@@ -47,38 +48,38 @@ impl RedmineClient {
         }
     }
 
-    fn list(&self, path: &str, params: &HashMap<&str, String>) -> String {
-        let mut url = self.get_base_url(path);
+    fn list(&self, path: &str, params: &HashMap<&str, String>) -> Result<String, Box<Error>> {
+        let mut url = self.get_base_url(path)?;
 
         for (key, value) in params {
             url.query_pairs_mut().append_pair(key, value);
         }
 
-        let mut response = Client::new().unwrap()
-            .get(url.as_str()).unwrap()
-            .send().unwrap();
+        let mut response = Client::new()?
+            .get(url.as_str())?
+            .send()?;
 
         let mut result = String::new();
-        response.read_to_string(&mut result).unwrap();
+        response.read_to_string(&mut result)?;
 
-        result
+        Ok(result)
     }
 
-    fn create<T: Serialize>(&self, path: &str, object: &T) -> bool {
-        Client::new().unwrap()
-            .post(self.get_base_url(path).as_str()).unwrap()
-            .json(object).unwrap()
-            .send().unwrap();
+    fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<bool, Box<Error>> {
+        Client::new()?
+            .post(self.get_base_url(path)?.as_str())?
+            .json(object)?
+            .send()?;
 
-        true
+        Ok(true)
     }
 
-    fn get_base_url(&self, path: &str) -> Url {
-        let mut url = Url::parse(&(self.host.clone() + path)).unwrap();
+    fn get_base_url(&self, path: &str) -> Result<Url, Box<Error>> {
+        let mut url = Url::parse(&(self.host.clone() + path))?;
         url.query_pairs_mut()
             .append_pair("key", &self.apikey);
 
-        url
+        Ok(url)
     }
 }
 

@@ -17,5 +17,5 @@ fn main() {
     };
 
     let result = redmine.time_entries().create(&time_entry);
-    println!("Result: {}", result);
+    println!("Result: {:?}", result);
 }
