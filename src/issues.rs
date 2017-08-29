@@ -1,14 +1,15 @@
 extern crate serde_json;
 
 use std::collections::HashMap;
+use std::rc::Rc;
 use super::NamedObject;
 use super::RedmineClient;
 
 pub struct Api {
-    client: RedmineClient,
+    client: Rc<RedmineClient>,
 }
 impl Api {
-    pub fn new(client: RedmineClient) -> Api {
+    pub fn new(client: Rc<RedmineClient>) -> Api {
         Api {
             client: client,
         }
@@ -19,7 +20,7 @@ impl Api {
     }
 
     pub fn filter(&self) -> IssueFilter {
-        IssueFilter::new(self.client.clone())
+        IssueFilter::new(Rc::clone(&self.client))
     }
 //
 //    pub fn create(&self, time_entry: &TimeEntry) -> bool {
@@ -30,7 +31,7 @@ impl Api {
 }
 
 pub struct IssueFilter {
-    client: RedmineClient,
+    client: Rc<RedmineClient>,
     assigned_to_id: Option<u32>,
     issue_id: Vec<u32>,
     parent_id: Option<u32>,
@@ -40,7 +41,7 @@ pub struct IssueFilter {
     tracker_id: Option<u32>,
 }
 impl IssueFilter {
-    fn new(client: RedmineClient) -> IssueFilter {
+    fn new(client: Rc<RedmineClient>) -> IssueFilter {
         IssueFilter {
             client: client,
             assigned_to_id: None,

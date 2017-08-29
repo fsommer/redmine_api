@@ -8,6 +8,7 @@ pub mod time_entries;
 
 use std::collections::HashMap;
 use std::io::Read;
+use std::rc::Rc;
 use reqwest::{Client, Url};
 use serde::ser::Serialize;
 
@@ -17,9 +18,10 @@ pub struct RedmineApi {
 }
 impl RedmineApi {
     pub fn new(host: String, apikey: String) -> RedmineApi {
+        let c = Rc::new(RedmineClient::new(host, apikey));
         RedmineApi {
-            issues: issues::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
-            time_entries: time_entries::Api::new(RedmineClient::new(host.clone(), apikey.clone())),
+            issues: issues::Api::new(Rc::clone(&c)),
+            time_entries: time_entries::Api::new(Rc::clone(&c)),
         }
     }
 
