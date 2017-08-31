@@ -24,11 +24,11 @@ impl Api {
         IssueFilter::new(Rc::clone(&self.client))
     }
 
-//    pub fn create(&self, time_entry: &TimeEntry) -> bool {
-//        self.client.create("/time_entries.json", &CreateTimeEntry {
-//            time_entry: time_entry
-//        })
-//    }
+    pub fn create(&self, issue: &Issue) -> Result<bool> {
+        self.client.create("/issues.json", &CreateIssue {
+            issue: issue
+        })
+    }
 }
 
 pub struct IssueFilter {
@@ -87,6 +87,28 @@ impl IssueFilter {
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
+}
+
+#[derive(Serialize)]
+struct CreateIssue<'a> {
+    issue: &'a Issue<'a>,
+}
+
+#[derive(Serialize)]
+pub struct Issue<'a> {
+    pub project_id: u32,
+    pub tracker_id: u32,
+    pub status_id: u32,
+    pub priority_id: u32,
+    pub subject: &'a str,
+    pub description: &'a str,
+    pub category_id: u32,
+    pub fixed_version_id: u32,
+    pub assigned_to_id: u32,
+    pub parent_issue_id: u32,
+    pub watcher_user_ids: Vec<u32>,
+    pub is_private: bool,
+    pub estimated_hours: f32,
 }
 
 #[derive(Deserialize, Debug)]
