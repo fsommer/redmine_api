@@ -30,6 +30,11 @@ impl Api {
 }
 
 #[derive(Serialize)]
+struct CreateTimeEntry<'a> {
+    time_entry: &'a TimeEntry,
+}
+
+#[derive(Serialize)]
 pub struct TimeEntry {
     pub issue_id: u32,
     pub hours: f32,
@@ -54,9 +59,4 @@ pub struct TimeEntryListItem {
     pub spent_on: String,
     pub created_on: String,
     pub updated_on: String,
-}
-
-#[derive(Serialize)]
-struct CreateTimeEntry<'a> {
-    time_entry: &'a TimeEntry,
 }
