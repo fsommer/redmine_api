@@ -1,3 +1,6 @@
+#![recursion_limit = "1024"]
+
+#[macro_use] extern crate error_chain;
 #[macro_use] extern crate serde_derive;
 
 extern crate reqwest;
@@ -6,12 +9,21 @@ extern crate serde;
 pub mod issues;
 pub mod time_entries;
 
+pub mod errors {
+    error_chain! {
+        foreign_links {
+            Io(::std::io::Error);
+            Reqwest(::reqwest::Error);
+        }
+    }
+}
+
 use std::collections::HashMap;
-use std::error::Error;
 use std::io::Read;
 use std::rc::Rc;
 use reqwest::{Client, Url};
 use serde::ser::Serialize;
+use errors::*;
 
 pub struct RedmineApi {
     issues: issues::Api,
@@ -48,7 +60,7 @@ impl RedmineClient {
         }
     }
 
-    fn list(&self, path: &str, params: &HashMap<&str, String>) -> Result<String, Box<Error>> {
+    fn list(&self, path: &str, params: &HashMap<&str, String>) -> Result<String> {
         let mut url = self.get_base_url(path)?;
 
         for (key, value) in params {
@@ -65,7 +77,7 @@ impl RedmineClient {
         Ok(result)
     }
 
-    fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<bool, Box<Error>> {
+    fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<bool> {
         Client::new()?
             .post(self.get_base_url(path)?.as_str())?
             .json(object)?
@@ -74,8 +86,10 @@ impl RedmineClient {
         Ok(true)
     }
 
-    fn get_base_url(&self, path: &str) -> Result<Url, Box<Error>> {
-        let mut url = Url::parse(&(self.host.clone() + path))?;
+    fn get_base_url(&self, path: &str) -> Result<Url> {
+        let mut url = Url::parse(&(self.host.clone() + path))
+            .chain_err(|| "Can't parse url")?;
+
         url.query_pairs_mut()
             .append_pair("key", &self.apikey);
 

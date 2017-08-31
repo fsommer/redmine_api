@@ -1,8 +1,8 @@
 extern crate serde_json;
 
 use std::collections::HashMap;
-use std::error::Error;
 use std::rc::Rc;
+use super::errors::*;
 use super::{Object, NamedObject};
 use super::RedmineClient;
 
@@ -16,16 +16,13 @@ impl Api {
         }
     }
 
-    pub fn list(&self) -> Result<TimeEntryList, Box<Error>> {
+    pub fn list(&self) -> Result<TimeEntryList> {
         let result = self.client.list("/time_entries.json", &HashMap::new())?;
 
-        match serde_json::from_str(&result) {
-            Ok(list) => Ok(list),
-            Err(e) => Err(Box::new(e)),
-        }
+        serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 
-    pub fn create(&self, time_entry: &TimeEntry) -> Result<bool, Box<Error>> {
+    pub fn create(&self, time_entry: &TimeEntry) -> Result<bool> {
         self.client.create("/time_entries.json", &CreateTimeEntry {
             time_entry: time_entry
         })

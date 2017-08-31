@@ -1,8 +1,8 @@
 extern crate serde_json;
 
 use std::collections::HashMap;
-use std::error::Error;
 use std::rc::Rc;
+use super::errors::*;
 use super::NamedObject;
 use super::RedmineClient;
 
@@ -16,7 +16,7 @@ impl Api {
         }
     }
 
-    pub fn list(&self) -> Result<IssueList, Box<Error>> {
+    pub fn list(&self) -> Result<IssueList> {
         self.filter().list()
     }
 
@@ -65,7 +65,7 @@ impl IssueFilter {
         self
     }
 
-    pub fn list(&self) -> Result<IssueList, Box<Error>> {
+    pub fn list(&self) -> Result<IssueList> {
         let mut params: HashMap<&str, String> = HashMap::new();
 //
 //        if self.issue_id.len() > 0 {
@@ -79,10 +79,7 @@ impl IssueFilter {
 
         let result = self.client.list("/issues.json", &params)?;
 
-        match serde_json::from_str(&result) {
-            Ok(list) => Ok(list),
-            Err(e) => Err(Box::new(e)),
-        }
+        serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 }
 
