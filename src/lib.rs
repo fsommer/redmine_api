@@ -88,7 +88,7 @@ impl RedmineClient {
 
     fn get_base_url(&self, path: &str) -> Result<Url> {
         let mut url = Url::parse(&(self.host.clone() + path))
-            .chain_err(|| "Can't parse url")?;
+            .chain_err(|| format!("Can't parse url: {}", (self.host.clone() + path)))?;
 
         url.query_pairs_mut()
             .append_pair("key", &self.apikey);
