@@ -23,7 +23,7 @@ impl Api {
     pub fn filter(&self) -> IssueFilter {
         IssueFilter::new(Rc::clone(&self.client))
     }
-//
+
 //    pub fn create(&self, time_entry: &TimeEntry) -> bool {
 //        self.client.create("/time_entries.json", &CreateTimeEntry {
 //            time_entry: time_entry
@@ -54,11 +54,16 @@ impl IssueFilter {
             tracker_id: None,
         }
     }
-//
-//    pub fn with_issue_id(&mut self, id: u32) -> &mut IssueFilter {
-//        self.issue_id.push(id);
-//        self
-//    }
+
+    pub fn with_issue_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.issue_id.push(id);
+        self
+    }
+
+    pub fn with_issue_ids(&mut self, ids: Vec<u32>) -> &mut IssueFilter {
+        self.issue_id.extend(ids);
+        self
+    }
 
     pub fn with_tracker_id(&mut self, id: u32) -> &mut IssueFilter {
         self.tracker_id = Some(id);
@@ -67,11 +72,12 @@ impl IssueFilter {
 
     pub fn list(&self) -> Result<IssueList> {
         let mut params: HashMap<&str, String> = HashMap::new();
-//
-//        if self.issue_id.len() > 0 {
-//            let issue_id: String = self.issue_id.join(",");
-//            params.insert("issue_id", issue_id);
-//        }
+
+        if self.issue_id.len() > 0 {
+            let issue_id = self.issue_id.iter().map(|i| i.to_string())
+                .collect::<Vec<String>>().join(",");
+            params.insert("issue_id", issue_id);
+        }
 
         if let Some(id) = self.tracker_id {
             params.insert("tracker_id", id.to_string());
