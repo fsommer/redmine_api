@@ -47,6 +47,7 @@ impl RedmineApi {
     }
 }
 
+#[derive(Default)]
 pub struct RedmineClient {
     host: String,
     apikey: String,

@@ -30,6 +30,7 @@ impl Api {
     }
 }
 
+#[derive(Default)]
 pub struct IssueFilter {
     client: Rc<RedmineClient>,
     assigned_to_id: Option<u32>,
@@ -44,13 +45,7 @@ impl IssueFilter {
     fn new(client: Rc<RedmineClient>) -> IssueFilter {
         IssueFilter {
             client: client,
-            assigned_to_id: None,
-            issue_id: Vec::new(),
-            parent_id: None,
-            project_id: None,
-            status_id: None,
-            subproject_id: None,
-            tracker_id: None,
+            ..Default::default()
         }
     }
 
