@@ -3,8 +3,7 @@ extern crate serde_json;
 use std::collections::HashMap;
 use std::rc::Rc;
 use super::errors::*;
-use super::NamedObject;
-use super::RedmineClient;
+use super::{NamedObject, RedmineClient};
 
 pub struct Api {
     client: Rc<RedmineClient>,
