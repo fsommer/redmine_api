@@ -33,12 +33,50 @@ struct CreateTimeEntry<'a> {
     time_entry: &'a TimeEntry,
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 pub struct TimeEntry {
-    pub issue_id: u32,
-    pub hours: f32,
-    pub activity_id: u8,
-    pub comments: String,
+    issue_id: u32,
+    hours: f32,
+    activity_id: u8,
+    comments: String,
+    spent_on: Option<String>,
+}
+impl TimeEntry {
+    pub fn new(issue_id: u32,
+               hours: f32,
+               activity_id: u8) -> Self {
+        TimeEntry {
+            issue_id: issue_id,
+            hours: hours,
+            activity_id: activity_id,
+            ..Default::default()
+        }
+    }
+
+    pub fn issue_id(mut self, id: u32) -> Self {
+        self.issue_id = id;
+        self
+    }
+
+    pub fn hours(mut self, h: f32) -> Self {
+        self.hours = h;
+        self
+    }
+
+    pub fn activity_id(mut self, id: u8) -> Self {
+        self.activity_id = id;
+        self
+    }
+
+    pub fn comments(mut self, c: String) -> Self {
+        self.comments = c;
+        self
+    }
+
+    pub fn spent_on(mut self, so: String) -> Self {
+        self.spent_on = Some(so);
+        self
+    }
 }
 
 #[derive(Deserialize, Debug)]

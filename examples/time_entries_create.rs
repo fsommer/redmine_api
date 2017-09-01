@@ -9,12 +9,9 @@ fn main() {
         "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
-    let time_entry = TimeEntry {
-        issue_id: 1,
-        hours: 0.1,
-        activity_id: 4,
-        comments: "Test am Sonntag".to_string(),
-    };
+    let time_entry = TimeEntry::new(1, 0.2, 4)
+        .comments("Hello World".to_string())
+        .spent_on("2017-08-17".to_string());
 
     let result = redmine.time_entries().create(&time_entry);
     println!("Result: {:?}", result);
