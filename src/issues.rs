@@ -133,21 +133,107 @@ struct CreateIssue<'a> {
     issue: &'a Issue<'a>,
 }
 
-#[derive(Serialize)]
+#[derive(Default, Serialize)]
 pub struct Issue<'a> {
-    pub project_id: u32,
-    pub tracker_id: u32,
-    pub status_id: u32,
-    pub priority_id: u32,
-    pub subject: &'a str,
-    pub description: &'a str,
-    pub category_id: u32,
-    pub fixed_version_id: u32,
-    pub assigned_to_id: u32,
-    pub parent_issue_id: u32,
-    pub watcher_user_ids: Vec<u32>,
-    pub is_private: bool,
-    pub estimated_hours: f32,
+    project_id: u32,
+    tracker_id: u32,
+    status_id: u32,
+    priority_id: u32,
+    subject: &'a str,
+    description: &'a str,
+    category_id: Option<u32>,
+    fixed_version_id: Option<u32>,
+    assigned_to_id: Option<u32>,
+    parent_issue_id: Option<u32>,
+    watcher_user_ids: Vec<u32>,
+    is_private: bool,
+    estimated_hours: Option<f32>,
+}
+impl<'a> Issue<'a> {
+    pub fn new(project_id: u32,
+               tracker_id: u32,
+               status_id: u32,
+               priority_id: u32,
+               subject: &'a str) -> Self {
+        Issue {
+            project_id: project_id,
+            tracker_id: tracker_id,
+            status_id: status_id,
+            priority_id: priority_id,
+            subject: subject,
+            ..Default::default()
+        }
+    }
+
+    pub fn project_id(mut self, id: u32) -> Self {
+        self.project_id = id;
+        self
+    }
+
+    pub fn tracker_id(mut self, id: u32) -> Self {
+        self.tracker_id = id;
+        self
+    }
+
+    pub fn status_id(mut self, id: u32) -> Self {
+        self.status_id = id;
+        self
+    }
+
+    pub fn priority_id(mut self, id: u32) -> Self {
+        self.priority_id = id;
+        self
+    }
+
+    pub fn subject(mut self, s: &'a str) -> Self {
+        self.subject = s;
+        self
+    }
+
+    pub fn description(mut self, s: &'a str) -> Self {
+        self.description = s;
+        self
+    }
+
+    pub fn category_id(mut self, id: u32) -> Self {
+        self.category_id = Some(id);
+        self
+    }
+
+    pub fn fixed_version_id(mut self, id: u32) -> Self {
+        self.fixed_version_id = Some(id);
+        self
+    }
+
+    pub fn assigned_to_id(mut self, id: u32) -> Self {
+        self.assigned_to_id = Some(id);
+        self
+    }
+
+    pub fn parent_issue_id(mut self, id: u32) -> Self {
+        self.parent_issue_id = Some(id);
+        self
+    }
+
+    pub fn watcher_user_ids(mut self, ids: Vec<u32>) -> Self {
+        self.watcher_user_ids = ids;
+        self
+    }
+
+    pub fn add_watcher_user_id(mut self, id: u32) -> Self {
+        self.watcher_user_ids.push(id);
+        self
+    }
+
+    pub fn is_private(mut self, b: bool) -> Self {
+        self.is_private = b;
+        self
+    }
+
+    pub fn estimated_hours(mut self, eh: f32) -> Self {
+        self.estimated_hours = Some(eh);
+        self
+    }
 }
 
 #[derive(Deserialize, Debug)]
