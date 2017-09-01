@@ -10,8 +10,8 @@ fn main() {
     );
 
     let time_entry = TimeEntry::new(1, 0.2, 4)
-        .comments("Hello World".to_string())
-        .spent_on("2017-08-17".to_string());
+        .comments("Hello World")
+        .spent_on("2017-08-17");
 
     let result = redmine.time_entries().create(&time_entry);
     println!("Result: {:?}", result);

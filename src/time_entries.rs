@@ -30,18 +30,18 @@ impl Api {
 
 #[derive(Serialize)]
 struct CreateTimeEntry<'a> {
-    time_entry: &'a TimeEntry,
+    time_entry: &'a TimeEntry<'a>,
 }
 
 #[derive(Default, Serialize)]
-pub struct TimeEntry {
+pub struct TimeEntry<'a> {
     issue_id: u32,
     hours: f32,
     activity_id: u8,
-    comments: String,
-    spent_on: Option<String>,
+    comments: &'a str,
+    spent_on: Option<&'a str>,
 }
-impl TimeEntry {
+impl<'a> TimeEntry<'a> {
     pub fn new(issue_id: u32,
                hours: f32,
                activity_id: u8) -> Self {
@@ -68,12 +68,12 @@ impl TimeEntry {
         self
     }
 
-    pub fn comments(mut self, c: String) -> Self {
+    pub fn comments(mut self, c: &'a str) -> Self {
         self.comments = c;
         self
     }
 
-    pub fn spent_on(mut self, so: String) -> Self {
+    pub fn spent_on(mut self, so: &'a str) -> Self {
         self.spent_on = Some(so);
         self
     }
