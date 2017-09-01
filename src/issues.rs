@@ -125,7 +125,7 @@ impl IntoIterator for IssueList {
 
 #[derive(Deserialize, Debug)]
 pub struct IssueListItem {
-    pub assigned_to: NamedObject,
+    pub assigned_to: Option<NamedObject>,
     pub author: NamedObject,
     pub category: Option<NamedObject>,
     pub created_on: String,
@@ -138,7 +138,7 @@ pub struct IssueListItem {
     pub parent: Option<Object>,
     pub priority: NamedObject,
     pub project: NamedObject,
-    pub start_date: String,
+    pub start_date: Option<String>,
     pub status: NamedObject,
     pub subject: String,
     pub tracker: NamedObject,
