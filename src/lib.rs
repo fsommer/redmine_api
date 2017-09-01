@@ -47,7 +47,6 @@ impl RedmineApi {
     }
 }
 
-#[derive(Clone)]
 pub struct RedmineClient {
     host: String,
     apikey: String,
