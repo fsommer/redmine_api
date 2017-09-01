@@ -78,10 +78,14 @@ impl RedmineClient {
     }
 
     fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<bool> {
-        Client::new()?
+        let response = Client::new()?
             .post(self.get_base_url(path)?.as_str())?
             .json(object)?
             .send()?;
+
+        if !response.status().is_success() {
+           bail!("{}", response.status());
+        }
 
         Ok(true)
     }
