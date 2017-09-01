@@ -19,6 +19,14 @@ impl Api {
         self.filter().list()
     }
 
+    pub fn show(&self, id: u32) -> Result<IssueShow> {
+        let result = self.client.get(
+            &(format!("/issues/{}.json", id)),
+            &HashMap::new())?;
+
+        serde_json::from_str(&result).chain_err(|| "Can't parse json")
+    }
+
     pub fn filter(&self) -> IssueFilter {
         IssueFilter::new(Rc::clone(&self.client))
     }
@@ -122,7 +130,7 @@ impl IssueFilter {
             params.insert("tracker_id", id.to_string());
         }
 
-        let result = self.client.list("/issues.json", &params)?;
+        let result = self.client.get("/issues.json", &params)?;
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
@@ -238,11 +246,11 @@ impl<'a> Issue<'a> {
 
 #[derive(Deserialize, Debug)]
 pub struct IssueList {
-    issues: Vec<IssueListItem>,
+    issues: Vec<IssueItem>,
 }
 impl IntoIterator for IssueList {
-    type Item = IssueListItem;
-    type IntoIter = ::std::vec::IntoIter<IssueListItem>;
+    type Item = IssueItem;
+    type IntoIter = ::std::vec::IntoIter<IssueItem>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.issues.into_iter()
@@ -250,7 +258,12 @@ impl IntoIterator for IssueList {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct IssueListItem {
+pub struct IssueShow {
+    issue: IssueItem,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct IssueItem {
     pub assigned_to: Option<NamedObject>,
     pub author: NamedObject,
     pub category: Option<NamedObject>,

@@ -16,7 +16,7 @@ impl Api {
     }
 
     pub fn list(&self) -> Result<TimeEntryList> {
-        let result = self.client.list("/time_entries.json", &HashMap::new())?;
+        let result = self.client.get("/time_entries.json", &HashMap::new())?;
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }

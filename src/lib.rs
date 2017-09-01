@@ -60,7 +60,7 @@ impl RedmineClient {
         }
     }
 
-    fn list(&self, path: &str, params: &HashMap<&str, String>) -> Result<String> {
+    fn get(&self, path: &str, params: &HashMap<&str, String>) -> Result<String> {
         let mut url = self.get_base_url(path)?;
 
         for (key, value) in params {
