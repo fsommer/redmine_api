@@ -54,6 +54,11 @@ impl IssueFilter {
         }
     }
 
+    pub fn with_assigned_to_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.assigned_to_id = Some(id);
+        self
+    }
+
     pub fn with_issue_id(&mut self, id: u32) -> &mut IssueFilter {
         self.issue_id.push(id);
         self
@@ -61,6 +66,26 @@ impl IssueFilter {
 
     pub fn with_issue_ids(&mut self, ids: Vec<u32>) -> &mut IssueFilter {
         self.issue_id.extend(ids);
+        self
+    }
+
+    pub fn with_parent_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.parent_id = Some(id);
+        self
+    }
+
+    pub fn with_project_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.project_id = Some(id);
+        self
+    }
+
+    pub fn with_status_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.status_id = Some(id);
+        self
+    }
+
+    pub fn with_subproject_id(&mut self, id: u32) -> &mut IssueFilter {
+        self.subproject_id = Some(id);
         self
     }
 
@@ -72,10 +97,30 @@ impl IssueFilter {
     pub fn list(&self) -> Result<IssueList> {
         let mut params: HashMap<&str, String> = HashMap::new();
 
+        if let Some(id) = self.assigned_to_id {
+            params.insert("assigned_to_id", id.to_string());
+        }
+
         if self.issue_id.len() > 0 {
             let issue_id = self.issue_id.iter().map(|i| i.to_string())
                 .collect::<Vec<String>>().join(",");
             params.insert("issue_id", issue_id);
+        }
+
+        if let Some(id) = self.parent_id {
+            params.insert("parent_id", id.to_string());
+        }
+
+        if let Some(id) = self.project_id {
+            params.insert("project_id", id.to_string());
+        }
+
+        if let Some(id) = self.status_id {
+            params.insert("status_id", id.to_string());
+        }
+
+        if let Some(id) = self.subproject_id {
+            params.insert("subproject_id", id.to_string());
         }
 
         if let Some(id) = self.tracker_id {
