@@ -3,7 +3,7 @@ extern crate serde_json;
 use std::collections::HashMap;
 use std::rc::Rc;
 use super::errors::*;
-use super::{NamedObject, RedmineClient};
+use super::{Object, NamedObject, RedmineClient};
 
 pub struct Api {
     client: Rc<RedmineClient>,
@@ -127,10 +127,15 @@ impl IntoIterator for IssueList {
 pub struct IssueListItem {
     pub assigned_to: NamedObject,
     pub author: NamedObject,
+    pub category: Option<NamedObject>,
     pub created_on: String,
     pub description: String,
     pub done_ratio: u32,
+    pub due_date: Option<String>,
+    pub estimated_hours: Option<f32>,
+    pub fixed_version: Option<NamedObject>,
     pub id: u32,
+    pub parent: Option<Object>,
     pub priority: NamedObject,
     pub project: NamedObject,
     pub start_date: String,
