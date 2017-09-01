@@ -8,15 +8,7 @@ extern crate serde;
 
 pub mod issues;
 pub mod time_entries;
-
-pub mod errors {
-    error_chain! {
-        foreign_links {
-            Io(::std::io::Error);
-            Reqwest(::reqwest::Error);
-        }
-    }
-}
+pub mod errors;
 
 use std::collections::HashMap;
 use std::io::Read;
