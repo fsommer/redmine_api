@@ -24,7 +24,7 @@ impl Api {
             &(format!("/issues/{}.json", id)),
             &HashMap::new())?;
 
-        Ok(serde_json::from_str::<IssueShow>(&result)
+        Ok(serde_json::from_str::<IssueItemWrapper>(&result)
             .chain_err(|| "Can't parse json")?.into())
     }
 
@@ -33,7 +33,13 @@ impl Api {
     }
 
     pub fn create(&self, issue: &Issue) -> Result<bool> {
-        self.client.create("/issues.json", &CreateIssue {
+        self.client.create("/issues.json", &IssueWrapper {
+            issue: issue
+        })
+    }
+
+    pub fn update(&self, id: u32, issue: &Issue) -> Result<bool> {
+        self.client.update(&(format!("/issues/{}.json", id)), &IssueWrapper {
             issue: issue
         })
     }
@@ -138,7 +144,7 @@ impl IssueFilter {
 }
 
 #[derive(Serialize)]
-struct CreateIssue<'a> {
+struct IssueWrapper<'a> {
     issue: &'a Issue<'a>,
 }
 
@@ -157,6 +163,10 @@ pub struct Issue<'a> {
     watcher_user_ids: Vec<u32>,
     is_private: bool,
     estimated_hours: Option<f32>,
+
+    // only for update
+    notes: &'a str,
+    private_notes: bool,
 }
 impl<'a> Issue<'a> {
     pub fn new(project_id: u32,
@@ -243,6 +253,16 @@ impl<'a> Issue<'a> {
         self.estimated_hours = Some(eh);
         self
     }
+
+    pub fn notes(mut self, n: &'a str) -> Self {
+        self.notes = n;
+        self
+    }
+
+    pub fn private_notes(mut self, b: bool) -> Self {
+        self.private_notes = b;
+        self
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -259,7 +279,7 @@ impl IntoIterator for IssueList {
 }
 
 #[derive(Deserialize, Debug)]
-struct IssueShow {
+struct IssueItemWrapper {
     issue: IssueItem,
 }
 
@@ -284,8 +304,8 @@ pub struct IssueItem {
     pub tracker: NamedObject,
     pub updated_on: String,
 }
-impl From<IssueShow> for IssueItem {
-    fn from(is: IssueShow) -> Self {
+impl From<IssueItemWrapper> for IssueItem {
+    fn from(is: IssueItemWrapper) -> Self {
         is.issue
     }
 }

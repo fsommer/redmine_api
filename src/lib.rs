@@ -82,6 +82,19 @@ impl RedmineClient {
         Ok(true)
     }
 
+    fn update<T: Serialize>(&self, path: &str, object: &T) -> Result<bool> {
+        let response = Client::new()?
+            .put(self.get_base_url(path)?.as_str())?
+            .json(object)?
+            .send()?;
+
+        if !response.status().is_success() {
+           bail!("{}", response.status());
+        }
+
+        Ok(true)
+    }
+
     fn get_base_url(&self, path: &str) -> Result<Url> {
         let mut url = Url::parse(&(self.host.clone() + path))
             .chain_err(|| format!("Can't parse url: {}", (self.host.clone() + path)))?;
