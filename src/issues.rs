@@ -19,12 +19,13 @@ impl Api {
         self.filter().list()
     }
 
-    pub fn show(&self, id: u32) -> Result<IssueShow> {
+    pub fn show(&self, id: u32) -> Result<IssueItem> {
         let result = self.client.get(
             &(format!("/issues/{}.json", id)),
             &HashMap::new())?;
 
-        serde_json::from_str(&result).chain_err(|| "Can't parse json")
+        Ok(serde_json::from_str::<IssueShow>(&result)
+            .chain_err(|| "Can't parse json")?.into())
     }
 
     pub fn filter(&self) -> IssueFilter {
@@ -258,7 +259,7 @@ impl IntoIterator for IssueList {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct IssueShow {
+struct IssueShow {
     issue: IssueItem,
 }
 
@@ -282,4 +283,9 @@ pub struct IssueItem {
     pub subject: String,
     pub tracker: NamedObject,
     pub updated_on: String,
+}
+impl From<IssueShow> for IssueItem {
+    fn from(is: IssueShow) -> Self {
+        is.issue
+    }
 }
