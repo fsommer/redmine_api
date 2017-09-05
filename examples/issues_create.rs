@@ -1,7 +1,6 @@
 extern crate redmine_api;
 
 use redmine_api::RedmineApi;
-use redmine_api::issues::Issue;
 
 fn main() {
     let redmine = RedmineApi::new(
@@ -9,11 +8,11 @@ fn main() {
         "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
-    let issue = Issue::new(1, 1, 1, 1, "subject 2")
+    let result = redmine.issues().create(1, 1, 1, 1, "2017-09-05 subject")
         .parent_issue_id(3)
         .is_private(true)
-        .estimated_hours(1.1);
+        .estimated_hours(3.4)
+        .execute();
 
-    let result = redmine.issues().create(&issue);
     println!("Result: {:?}", result);
 }

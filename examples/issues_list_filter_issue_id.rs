@@ -8,10 +8,10 @@ fn main() {
         "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
-    let result = redmine.issues().filter()
-        .with_issue_id(1)
-        .with_issue_ids(vec![2, 3])
-        .list().unwrap();
+    let result = redmine.issues().list()
+        .issue_id(1)
+        .issue_ids(vec![2, 3])
+        .execute().unwrap();
 
     for issue in result {
         println!("ID: {}, Subject: {}", issue.id, issue.subject);

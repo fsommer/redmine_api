@@ -39,7 +39,7 @@ impl RedmineApi {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct RedmineClient {
     host: String,
     apikey: String,
@@ -106,12 +106,12 @@ impl RedmineClient {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct Object {
     id: u32,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct NamedObject {
     id: u32,
     name: String,

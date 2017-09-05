@@ -15,33 +15,36 @@ impl Api {
         }
     }
 
-    pub fn list(&self) -> Result<IssueList> {
-        self.filter().list()
-    }
-
-    pub fn show(&self, id: u32) -> Result<IssueItem> {
-        let result = self.client.get(
-            &(format!("/issues/{}.json", id)),
-            &HashMap::new())?;
-
-        Ok(serde_json::from_str::<IssueItemWrapper>(&result)
-            .chain_err(|| "Can't parse json")?.into())
-    }
-
-    pub fn filter(&self) -> IssueFilter {
+    pub fn list(&self) -> IssueFilter {
         IssueFilter::new(Rc::clone(&self.client))
     }
 
-    pub fn create(&self, issue: &Issue) -> Result<bool> {
-        self.client.create("/issues.json", &IssueWrapper {
-            issue: issue
-        })
+    pub fn show(&self, id: u32) -> IssueItem {
+        IssueItem {
+            client: Rc::clone(&self.client),
+            show_id: id,
+            ..Default::default()
+        }
     }
 
-    pub fn update(&self, id: u32, issue: &Issue) -> Result<bool> {
-        self.client.update(&(format!("/issues/{}.json", id)), &IssueWrapper {
-            issue: issue
-        })
+    pub fn create<'a>(&self,
+                  project_id: u32,
+                  tracker_id: u32,
+                  status_id: u32,
+                  priority_id: u32,
+                  subject: &'a str) -> IssueBuilder<'a> {
+        IssueBuilder::for_create(
+            Rc::clone(&self.client),
+            project_id,
+            tracker_id,
+            status_id,
+            priority_id,
+            subject,
+        )
+    }
+
+    pub fn update(&self, id: u32) -> IssueBuilder {
+        IssueBuilder::for_update(Rc::clone(&self.client), id)
     }
 }
 
@@ -64,47 +67,47 @@ impl IssueFilter {
         }
     }
 
-    pub fn with_assigned_to_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn assigned_to_id(&mut self, id: u32) -> &mut IssueFilter {
         self.assigned_to_id = Some(id);
         self
     }
 
-    pub fn with_issue_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn issue_id(&mut self, id: u32) -> &mut IssueFilter {
         self.issue_id.push(id);
         self
     }
 
-    pub fn with_issue_ids(&mut self, ids: Vec<u32>) -> &mut IssueFilter {
+    pub fn issue_ids(&mut self, ids: Vec<u32>) -> &mut IssueFilter {
         self.issue_id.extend(ids);
         self
     }
 
-    pub fn with_parent_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn parent_id(&mut self, id: u32) -> &mut IssueFilter {
         self.parent_id = Some(id);
         self
     }
 
-    pub fn with_project_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn project_id(&mut self, id: u32) -> &mut IssueFilter {
         self.project_id = Some(id);
         self
     }
 
-    pub fn with_status_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn status_id(&mut self, id: u32) -> &mut IssueFilter {
         self.status_id = Some(id);
         self
     }
 
-    pub fn with_subproject_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn subproject_id(&mut self, id: u32) -> &mut IssueFilter {
         self.subproject_id = Some(id);
         self
     }
 
-    pub fn with_tracker_id(&mut self, id: u32) -> &mut IssueFilter {
+    pub fn tracker_id(&mut self, id: u32) -> &mut IssueFilter {
         self.tracker_id = Some(id);
         self
     }
 
-    pub fn list(&self) -> Result<IssueList> {
+    pub fn execute(&self) -> Result<IssueList> {
         let mut params: HashMap<&str, String> = HashMap::new();
 
         if let Some(id) = self.assigned_to_id {
@@ -143,64 +146,172 @@ impl IssueFilter {
     }
 }
 
-#[derive(Serialize)]
-struct IssueWrapper<'a> {
-    issue: &'a Issue<'a>,
+#[derive(Deserialize, Debug)]
+pub struct IssueList {
+    issues: Vec<Issue>,
+}
+impl IntoIterator for IssueList {
+    type Item = Issue;
+    type IntoIter = ::std::vec::IntoIter<Issue>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.issues.into_iter()
+    }
 }
 
-#[derive(Default, Serialize)]
-pub struct Issue<'a> {
-    project_id: u32,
-    tracker_id: u32,
-    status_id: u32,
-    priority_id: u32,
+#[derive(Deserialize, Debug, Default)]
+pub struct IssueItem {
+    // internal
+    #[serde(skip_deserializing)]
+    client: Rc<RedmineClient>,
+    #[serde(skip_deserializing)]
+    show_id: u32,
+
+    // show
+    issue: Issue,
+}
+impl IssueItem {
+    pub fn execute(&self) -> Result<Issue> {
+        let result = self.client.get(
+            &(format!("/issues/{}.json", self.show_id)),
+            &HashMap::new())?;
+
+        Ok(serde_json::from_str::<IssueItem>(&result)
+            .chain_err(|| "Can't parse json")?.into())
+    }
+}
+
+#[derive(Deserialize, Debug, Default)]
+pub struct Issue {
+    pub assigned_to: Option<NamedObject>,
+    pub author: NamedObject,
+    pub category: Option<NamedObject>,
+    pub created_on: String,
+    pub description: Option<String>,
+    pub done_ratio: u32,
+    pub due_date: Option<String>,
+    pub estimated_hours: Option<f32>,
+    pub fixed_version: Option<NamedObject>,
+    pub id: u32,
+    pub parent: Option<Object>,
+    pub priority: NamedObject,
+    pub project: NamedObject,
+    pub start_date: Option<String>,
+    pub status: NamedObject,
+    pub subject: String,
+    pub tracker: NamedObject,
+    pub updated_on: String,
+}
+impl From<IssueItem> for Issue {
+    fn from(item: IssueItem) -> Self {
+        item.issue
+    }
+}
+
+#[derive(Serialize)]
+struct IssueBuilderWrapper<'a> {
+    issue: &'a IssueBuilder<'a>,
+}
+
+#[derive(Debug)]
+enum IssueBuilderKind {
+    Create,
+    Update,
+}
+impl Default for IssueBuilderKind {
+    fn default() -> IssueBuilderKind {
+        IssueBuilderKind::Create
+    }
+}
+
+#[derive(Debug, Default, Serialize)]
+pub struct IssueBuilder<'a> {
+    // internal
+    #[serde(skip_serializing)]
+    client: Rc<RedmineClient>,
+    #[serde(skip_serializing)]
+    kind: IssueBuilderKind,
+
+    // create
+    #[serde(skip_serializing_if = "Option::is_none")]
+    project_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    tracker_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    status_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    priority_id: Option<u32>,
+    #[serde(skip_serializing_if = "str::is_empty")]
     subject: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
     description: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     category_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     fixed_version_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     assigned_to_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     parent_issue_id: Option<u32>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     watcher_user_ids: Vec<u32>,
     is_private: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     estimated_hours: Option<f32>,
 
-    // only for update
+    // update
+    #[serde(skip_serializing)]
+    update_id: u32,
+    #[serde(skip_serializing_if = "str::is_empty")]
     notes: &'a str,
     private_notes: bool,
 }
-impl<'a> Issue<'a> {
-    pub fn new(project_id: u32,
-               tracker_id: u32,
-               status_id: u32,
-               priority_id: u32,
-               subject: &'a str) -> Self {
-        Issue {
-            project_id: project_id,
-            tracker_id: tracker_id,
-            status_id: status_id,
-            priority_id: priority_id,
+impl<'a> IssueBuilder<'a> {
+    pub fn for_create(client: Rc<RedmineClient>,
+                  project_id: u32,
+                  tracker_id: u32,
+                  status_id: u32,
+                  priority_id: u32,
+                  subject: &'a str) -> Self {
+        IssueBuilder {
+            client: client,
+            kind: IssueBuilderKind::Create,
+
+            project_id: Some(project_id),
+            tracker_id: Some(tracker_id),
+            status_id: Some(status_id),
+            priority_id: Some(priority_id),
             subject: subject,
             ..Default::default()
         }
     }
 
+    pub fn for_update(client: Rc<RedmineClient>, id: u32) -> Self {
+        IssueBuilder {
+            client: client,
+            kind: IssueBuilderKind::Update,
+            update_id: id,
+            ..Default::default()
+        }
+    }
+
     pub fn project_id(mut self, id: u32) -> Self {
-        self.project_id = id;
+        self.project_id = Some(id);
         self
     }
 
     pub fn tracker_id(mut self, id: u32) -> Self {
-        self.tracker_id = id;
+        self.tracker_id = Some(id);
         self
     }
 
     pub fn status_id(mut self, id: u32) -> Self {
-        self.status_id = id;
+        self.status_id = Some(id);
         self
     }
 
     pub fn priority_id(mut self, id: u32) -> Self {
-        self.priority_id = id;
+        self.priority_id = Some(id);
         self
     }
 
@@ -263,49 +374,13 @@ impl<'a> Issue<'a> {
         self.private_notes = b;
         self
     }
-}
 
-#[derive(Deserialize, Debug)]
-pub struct IssueList {
-    issues: Vec<IssueItem>,
-}
-impl IntoIterator for IssueList {
-    type Item = IssueItem;
-    type IntoIter = ::std::vec::IntoIter<IssueItem>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.issues.into_iter()
-    }
-}
-
-#[derive(Deserialize, Debug)]
-struct IssueItemWrapper {
-    issue: IssueItem,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct IssueItem {
-    pub assigned_to: Option<NamedObject>,
-    pub author: NamedObject,
-    pub category: Option<NamedObject>,
-    pub created_on: String,
-    pub description: String,
-    pub done_ratio: u32,
-    pub due_date: Option<String>,
-    pub estimated_hours: Option<f32>,
-    pub fixed_version: Option<NamedObject>,
-    pub id: u32,
-    pub parent: Option<Object>,
-    pub priority: NamedObject,
-    pub project: NamedObject,
-    pub start_date: Option<String>,
-    pub status: NamedObject,
-    pub subject: String,
-    pub tracker: NamedObject,
-    pub updated_on: String,
-}
-impl From<IssueItemWrapper> for IssueItem {
-    fn from(is: IssueItemWrapper) -> Self {
-        is.issue
+    pub fn execute(&self) -> Result<bool> {
+        let issue = IssueBuilderWrapper { issue: self };
+        match self.kind {
+            IssueBuilderKind::Create => self.client.create("/issues.json", &issue),
+            IssueBuilderKind::Update => self.client.update(
+                &(format!("/issues/{}.json", self.update_id)), &issue),
+        }
     }
 }
