@@ -14,6 +14,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;
 use reqwest::{Client, Url};
+use reqwest::header::Location;
 use serde::ser::Serialize;
 use errors::*;
 
@@ -69,7 +70,7 @@ impl RedmineClient {
         Ok(result)
     }
 
-    fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<bool> {
+    fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<String> {
         let response = Client::new()?
             .post(self.get_base_url(path)?.as_str())?
             .json(object)?
@@ -79,10 +80,13 @@ impl RedmineClient {
            bail!("{}", response.status());
         }
 
-        Ok(true)
+        match response.headers().get::<Location>() {
+            Some(l) => Ok(l.to_string()),
+            _ => bail!("Can't create issue."),
+        }
     }
 
-    fn update<T: Serialize>(&self, path: &str, object: &T) -> Result<bool> {
+    fn update<T: Serialize>(&self, path: &str, object: &T) -> Result<String> {
         let response = Client::new()?
             .put(self.get_base_url(path)?.as_str())?
             .json(object)?
@@ -92,7 +96,7 @@ impl RedmineClient {
            bail!("{}", response.status());
         }
 
-        Ok(true)
+        Ok("Success".to_string())
     }
 
     fn get_base_url(&self, path: &str) -> Result<Url> {

@@ -21,7 +21,7 @@ impl Api {
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 
-    pub fn create(&self, time_entry: &TimeEntry) -> Result<bool> {
+    pub fn create(&self, time_entry: &TimeEntry) -> Result<String> {
         self.client.create("/time_entries.json", &CreateTimeEntry {
             time_entry: time_entry
         })

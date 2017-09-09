@@ -375,7 +375,7 @@ impl<'a> IssueBuilder<'a> {
         self
     }
 
-    pub fn execute(&self) -> Result<bool> {
+    pub fn execute(&self) -> Result<String> {
         let issue = IssueBuilderWrapper { issue: self };
         match self.kind {
             IssueBuilderKind::Create => self.client.create("/issues.json", &issue),
