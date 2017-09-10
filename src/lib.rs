@@ -71,13 +71,15 @@ impl RedmineClient {
     }
 
     fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<String> {
-        let response = Client::new()?
+        let mut response = Client::new()?
             .post(self.get_base_url(path)?.as_str())?
             .json(object)?
             .send()?;
 
         if !response.status().is_success() {
-           bail!("{}", response.status());
+            let mut body = String::new();
+            response.read_to_string(&mut body)?;
+            bail!("Error: {}, {}", response.status(), body);
         }
 
         match response.headers().get::<Location>() {
