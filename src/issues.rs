@@ -61,6 +61,14 @@ impl Api {
             watcher_id: watcher_id,
         }
     }
+
+    pub fn remove_watcher(&self, issue_id: u32, watcher_id: u32) -> IssueRemoveWatcher {
+        IssueRemoveWatcher {
+            client: Rc::clone(&self.client),
+            issue_id: issue_id,
+            watcher_id: watcher_id,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -240,6 +248,23 @@ impl IssueAddWatcher {
         }
 
         Ok(true)
+    }
+}
+
+pub struct IssueRemoveWatcher {
+    client: Rc<RedmineClient>,
+    issue_id: u32,
+    watcher_id: u32,
+}
+impl IssueRemoveWatcher {
+    pub fn execute(&self) -> Result<bool> {
+        self.client.delete(
+            &(format!(
+                "/issues/{}/watchers/{}.json",
+                self.issue_id,
+                self.watcher_id
+            )),
+        )
     }
 }
 
