@@ -89,13 +89,15 @@ impl RedmineClient {
     }
 
     fn update<T: Serialize>(&self, path: &str, object: &T) -> Result<String> {
-        let response = Client::new()?
+        let mut response = Client::new()?
             .put(self.get_base_url(path)?.as_str())?
             .json(object)?
             .send()?;
 
         if !response.status().is_success() {
-           bail!("{}", response.status());
+            let mut body = String::new();
+            response.read_to_string(&mut body)?;
+            bail!("Error: {}, {}", response.status(), body);
         }
 
         Ok("Success".to_string())
