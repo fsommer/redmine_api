@@ -53,6 +53,14 @@ impl Api {
             delete_id: id,
         }
     }
+
+    pub fn add_watcher(&self, issue_id: u32, watcher_id: u32) -> IssueAddWatcher {
+        IssueAddWatcher {
+            client: Rc::clone(&self.client),
+            issue_id: issue_id,
+            watcher_id: watcher_id,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -204,6 +212,34 @@ impl IssueDelete {
         self.client.delete(
             &(format!("/issues/{}.json", self.delete_id)),
         )
+    }
+}
+
+pub struct IssueAddWatcher {
+    client: Rc<RedmineClient>,
+    issue_id: u32,
+    watcher_id: u32,
+}
+impl IssueAddWatcher {
+    pub fn execute(&self) -> Result<bool> {
+        #[derive(Serialize)]
+        struct Wrapper {
+            user_id: u32,
+        }
+
+        let response = self.client.post(
+            &(format!(
+                "/issues/{}/watchers.json",
+                self.issue_id
+            )),
+            &Wrapper { user_id: self.watcher_id },
+        )?;
+
+        if !response.status().is_success() {
+            bail!("Error: {}", response.status());
+        }
+
+        Ok(true)
     }
 }
 
