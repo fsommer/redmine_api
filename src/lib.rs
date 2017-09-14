@@ -1,7 +1,9 @@
 #![recursion_limit = "1024"]
 
-#[macro_use] extern crate error_chain;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate error_chain;
+#[macro_use]
+extern crate serde_derive;
 
 extern crate reqwest;
 extern crate serde;
@@ -60,9 +62,7 @@ impl RedmineClient {
             url.query_pairs_mut().append_pair(key, value);
         }
 
-        let mut response = Client::new()?
-            .get(url.as_str())?
-            .send()?;
+        let mut response = Client::new()?.get(url.as_str())?.send()?;
 
         let mut result = String::new();
         response.read_to_string(&mut result)?;
@@ -116,15 +116,16 @@ impl RedmineClient {
         Client::new()?
             .post(self.get_base_url(path)?.as_str())?
             .json(object)?
-            .send().chain_err(|| format!("Can't post to {}", path))
+            .send()
+            .chain_err(|| format!("Can't post to {}", path))
     }
 
     fn get_base_url(&self, path: &str) -> Result<Url> {
-        let mut url = Url::parse(&(self.host.clone() + path))
-            .chain_err(|| format!("Can't parse url: {}", (self.host.clone() + path)))?;
+        let mut url = Url::parse(&(self.host.clone() + path)).chain_err(|| {
+            format!("Can't parse url: {}", (self.host.clone() + path))
+        })?;
 
-        url.query_pairs_mut()
-            .append_pair("key", &self.apikey);
+        url.query_pairs_mut().append_pair("key", &self.apikey);
 
         Ok(url)
     }

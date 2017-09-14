@@ -10,9 +10,7 @@ pub struct Api {
 }
 impl Api {
     pub fn new(client: Rc<RedmineClient>) -> Api {
-        Api {
-            client: client,
-        }
+        Api { client: client }
     }
 
     pub fn list(&self) -> Result<TimeEntryList> {
@@ -22,9 +20,10 @@ impl Api {
     }
 
     pub fn create(&self, time_entry: &TimeEntry) -> Result<String> {
-        self.client.create("/time_entries.json", &CreateTimeEntry {
-            time_entry: time_entry
-        })
+        self.client.create(
+            "/time_entries.json",
+            &CreateTimeEntry { time_entry: time_entry },
+        )
     }
 }
 
@@ -42,9 +41,7 @@ pub struct TimeEntry<'a> {
     spent_on: Option<&'a str>,
 }
 impl<'a> TimeEntry<'a> {
-    pub fn new(issue_id: u32,
-               hours: f32,
-               activity_id: u8) -> Self {
+    pub fn new(issue_id: u32, hours: f32, activity_id: u8) -> Self {
         TimeEntry {
             issue_id: issue_id,
             hours: hours,
