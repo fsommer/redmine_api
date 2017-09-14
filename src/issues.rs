@@ -10,9 +10,7 @@ pub struct Api {
 }
 impl Api {
     pub fn new(client: Rc<RedmineClient>) -> Api {
-        Api {
-            client: client,
-        }
+        Api { client: client }
     }
 
     pub fn list(&self) -> IssueFilter {
@@ -27,12 +25,14 @@ impl Api {
         }
     }
 
-    pub fn create<'a>(&self,
-                  project_id: u32,
-                  tracker_id: u32,
-                  status_id: u32,
-                  priority_id: u32,
-                  subject: &'a str) -> IssueBuilder<'a> {
+    pub fn create<'a>(
+        &self,
+        project_id: u32,
+        tracker_id: u32,
+        status_id: u32,
+        priority_id: u32,
+        subject: &'a str,
+    ) -> IssueBuilder<'a> {
         IssueBuilder::for_create(
             Rc::clone(&self.client),
             project_id,
@@ -122,8 +122,11 @@ impl IssueFilter {
         }
 
         if self.issue_id.len() > 0 {
-            let issue_id = self.issue_id.iter().map(|i| i.to_string())
-                .collect::<Vec<String>>().join(",");
+            let issue_id = self.issue_id
+                .iter()
+                .map(|i| i.to_string())
+                .collect::<Vec<String>>()
+                .join(",");
             params.insert("issue_id", issue_id);
         }
 
@@ -181,10 +184,14 @@ impl IssueShow {
     pub fn execute(&self) -> Result<Issue> {
         let result = self.client.get(
             &(format!("/issues/{}.json", self.show_id)),
-            &HashMap::new())?;
+            &HashMap::new(),
+        )?;
 
-        Ok(serde_json::from_str::<IssueShow>(&result)
-            .chain_err(|| "Can't parse json")?.into())
+        Ok(
+            serde_json::from_str::<IssueShow>(&result)
+                .chain_err(|| "Can't parse json")?
+                .into(),
+        )
     }
 }
 
@@ -194,7 +201,9 @@ pub struct IssueDelete {
 }
 impl IssueDelete {
     pub fn execute(&self) -> Result<bool> {
-        self.client.delete(&(format!("/issues/{}.json", self.delete_id)))
+        self.client.delete(
+            &(format!("/issues/{}.json", self.delete_id)),
+        )
     }
 }
 
@@ -284,12 +293,14 @@ pub struct IssueBuilder<'a> {
     private_notes: bool,
 }
 impl<'a> IssueBuilder<'a> {
-    pub fn for_create(client: Rc<RedmineClient>,
-                  project_id: u32,
-                  tracker_id: u32,
-                  status_id: u32,
-                  priority_id: u32,
-                  subject: &'a str) -> Self {
+    pub fn for_create(
+        client: Rc<RedmineClient>,
+        project_id: u32,
+        tracker_id: u32,
+        status_id: u32,
+        priority_id: u32,
+        subject: &'a str,
+    ) -> Self {
         IssueBuilder {
             client: client,
             kind: IssueBuilderKind::Create,
@@ -396,8 +407,12 @@ impl<'a> IssueBuilder<'a> {
         let issue = IssueBuilderWrapper { issue: self };
         match self.kind {
             IssueBuilderKind::Create => self.client.create("/issues.json", &issue),
-            IssueBuilderKind::Update => self.client.update(
-                &(format!("/issues/{}.json", self.update_id)), &issue),
+            IssueBuilderKind::Update => {
+                self.client.update(
+                    &(format!("/issues/{}.json", self.update_id)),
+                    &issue,
+                )
+            }
         }
     }
 }
