@@ -46,6 +46,13 @@ impl Api {
     pub fn update(&self, id: u32) -> IssueBuilder {
         IssueBuilder::for_update(Rc::clone(&self.client), id)
     }
+
+    pub fn delete(&self, id: u32) -> IssueDelete {
+        IssueDelete {
+            client: Rc::clone(&self.client),
+            delete_id: id,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -178,6 +185,16 @@ impl IssueShow {
 
         Ok(serde_json::from_str::<IssueShow>(&result)
             .chain_err(|| "Can't parse json")?.into())
+    }
+}
+
+pub struct IssueDelete {
+    client: Rc<RedmineClient>,
+    delete_id: u32,
+}
+impl IssueDelete {
+    pub fn execute(&self) -> Result<bool> {
+        self.client.delete(&(format!("/issues/{}.json", self.delete_id)))
     }
 }
 
