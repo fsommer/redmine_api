@@ -103,6 +103,18 @@ impl RedmineClient {
         Ok("Success".to_string())
     }
 
+    fn delete(&self, path: &str) -> Result<bool> {
+        let response = Client::new()?
+            .delete(self.get_base_url(path)?.as_str())?
+            .send()?;
+
+        if !response.status().is_success() {
+            bail!("Error: {}", response.status());
+        }
+
+        Ok(true)
+    }
+
     fn get_base_url(&self, path: &str) -> Result<Url> {
         let mut url = Url::parse(&(self.host.clone() + path))
             .chain_err(|| format!("Can't parse url: {}", (self.host.clone() + path)))?;
