@@ -19,8 +19,8 @@ impl Api {
         IssueFilter::new(Rc::clone(&self.client))
     }
 
-    pub fn show(&self, id: u32) -> IssueItem {
-        IssueItem {
+    pub fn show(&self, id: u32) -> IssueShow {
+        IssueShow {
             client: Rc::clone(&self.client),
             show_id: id,
             ..Default::default()
@@ -160,7 +160,7 @@ impl IntoIterator for IssueList {
 }
 
 #[derive(Deserialize, Debug, Default)]
-pub struct IssueItem {
+pub struct IssueShow {
     // internal
     #[serde(skip_deserializing)]
     client: Rc<RedmineClient>,
@@ -170,13 +170,13 @@ pub struct IssueItem {
     // show
     issue: Issue,
 }
-impl IssueItem {
+impl IssueShow {
     pub fn execute(&self) -> Result<Issue> {
         let result = self.client.get(
             &(format!("/issues/{}.json", self.show_id)),
             &HashMap::new())?;
 
-        Ok(serde_json::from_str::<IssueItem>(&result)
+        Ok(serde_json::from_str::<IssueShow>(&result)
             .chain_err(|| "Can't parse json")?.into())
     }
 }
@@ -202,8 +202,8 @@ pub struct Issue {
     pub tracker: NamedObject,
     pub updated_on: String,
 }
-impl From<IssueItem> for Issue {
-    fn from(item: IssueItem) -> Self {
+impl From<IssueShow> for Issue {
+    fn from(item: IssueShow) -> Self {
         item.issue
     }
 }
