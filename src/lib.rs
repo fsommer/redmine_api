@@ -13,7 +13,7 @@ pub mod errors;
 use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;
-use reqwest::{Client, Url};
+use reqwest::{Client, Response, Url};
 use reqwest::header::Location;
 use serde::ser::Serialize;
 use errors::*;
@@ -71,10 +71,7 @@ impl RedmineClient {
     }
 
     fn create<T: Serialize>(&self, path: &str, object: &T) -> Result<String> {
-        let mut response = Client::new()?
-            .post(self.get_base_url(path)?.as_str())?
-            .json(object)?
-            .send()?;
+        let mut response = self.post(path, object)?;
 
         if !response.status().is_success() {
             let mut body = String::new();
@@ -113,6 +110,13 @@ impl RedmineClient {
         }
 
         Ok(true)
+    }
+
+    fn post<T: Serialize>(&self, path: &str, object: &T) -> Result<Response> {
+        Client::new()?
+            .post(self.get_base_url(path)?.as_str())?
+            .json(object)?
+            .send().chain_err(|| format!("Can't post to {}", path))
     }
 
     fn get_base_url(&self, path: &str) -> Result<Url> {
