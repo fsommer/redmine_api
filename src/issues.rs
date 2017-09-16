@@ -569,7 +569,7 @@ pub struct IssueBuilder<'a> {
     private_notes: bool,
 }
 impl<'a> IssueBuilder<'a> {
-    /// Creates new instance for creation of an issue. Functions takes all mandatory parameters for
+    /// Creates new instance for creation of an issue. Function takes all mandatory parameters for
     /// a new issue.
     ///
     /// # Arguments
@@ -601,8 +601,8 @@ impl<'a> IssueBuilder<'a> {
         }
     }
 
-    /// Creates new instance for update of an issue. Functions takes mandatory parameter for
-    /// update: an id of an issue.
+    /// Creates new instance for update of an issue. Function takes mandatory parameter for update:
+    /// an id of an issue.
     ///
     /// # Arguments
     ///

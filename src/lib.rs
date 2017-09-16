@@ -192,7 +192,7 @@ impl RedmineClient {
             .chain_err(|| format!("Can't post to {}", path))
     }
 
-    /// Returns fully qulaified url to an redmine api endpoint (assuming the host user provided
+    /// Returns fully qulaified url to a redmine api endpoint (assuming the host user provided
     /// `host` parameter is valid). Returns reqwest Url.
     ///
     /// # Arguments
