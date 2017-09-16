@@ -1,3 +1,6 @@
+//! Holds some functions to represent the redmine time entries api partially as described by
+//! the following link: http://www.redmine.org/projects/redmine/wiki/Rest_TimeEntries
+
 extern crate serde_json;
 
 use std::collections::HashMap;
@@ -5,20 +8,59 @@ use std::rc::Rc;
 use super::errors::*;
 use super::{Object, NamedObject, RedmineClient};
 
+/// Exposes all methods provided by the redmine time entries api as implemented so far.
 pub struct Api {
     client: Rc<RedmineClient>,
 }
 impl Api {
+    /// Creates a new instance. Should not be called externally.
     pub fn new(client: Rc<RedmineClient>) -> Api {
         Api { client: client }
     }
 
+    /// Returns a list of time entries.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use redmine_api::RedmineApi;
+    ///
+    /// let redmine = RedmineApi::new(
+    ///     "http://www.redmine.org/".to_string(),
+    ///     "1234".to_string()
+    /// );
+    ///
+    /// let result = redmine.time_entries().list();
+    /// ```
     pub fn list(&self) -> Result<TimeEntryList> {
         let result = self.client.get("/time_entries.json", &HashMap::new())?;
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 
+    /// Creates a new time entry in the redmine application.
+    ///
+    /// # Arguments
+    ///
+    /// * `time_entry` - a TimeEntry holding all information needed to create a time entry
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use redmine_api::RedmineApi;
+    /// use redmine_api::time_entries::TimeEntry;
+    ///
+    /// let redmine = RedmineApi::new(
+    ///     "http://www.redmine.org/".to_string(),
+    ///     "1234".to_string()
+    /// );
+    ///
+    /// let time_entry = TimeEntry::new(1, 0.2, 4)
+    ///     .comments("Hello World")
+    ///     .spent_on("2017-09-16");
+    ///
+    /// let result = redmine.time_entries().create(&time_entry);
+    /// ```
     pub fn create(&self, time_entry: &TimeEntry) -> Result<String> {
         self.client.create(
             "/time_entries.json",
@@ -27,11 +69,13 @@ impl Api {
     }
 }
 
+/// Wraps a TimeEntry for serialization.
 #[derive(Serialize)]
 struct CreateTimeEntry<'a> {
     time_entry: &'a TimeEntry<'a>,
 }
 
+/// Represents a time entry.
 #[derive(Default, Serialize)]
 pub struct TimeEntry<'a> {
     issue_id: u32,
@@ -41,6 +85,7 @@ pub struct TimeEntry<'a> {
     spent_on: Option<&'a str>,
 }
 impl<'a> TimeEntry<'a> {
+    /// Creates a new TimeEntry.
     pub fn new(issue_id: u32, hours: f32, activity_id: u8) -> Self {
         TimeEntry {
             issue_id: issue_id,
@@ -50,37 +95,64 @@ impl<'a> TimeEntry<'a> {
         }
     }
 
+    /// Sets issue id the time entry belongs to.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding issue id
     pub fn issue_id(mut self, id: u32) -> Self {
         self.issue_id = id;
         self
     }
 
+    /// Sets amount of hours for the time entry.
+    ///
+    /// # Arguments
+    ///
+    /// `h` - a floating point number holding the amount of hours
     pub fn hours(mut self, h: f32) -> Self {
         self.hours = h;
         self
     }
 
+    /// Sets activity id of the time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding the id of the activity
     pub fn activity_id(mut self, id: u8) -> Self {
         self.activity_id = id;
         self
     }
 
+    /// Sets comment for the time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `c` - a string slice holding the comment
     pub fn comments(mut self, c: &'a str) -> Self {
         self.comments = c;
         self
     }
 
+    /// Sets date the time was spent on.
+    ///
+    /// # Arguments
+    ///
+    /// * `so` - a string slice holding the date, e.g. "2017-09-16"
     pub fn spent_on(mut self, so: &'a str) -> Self {
         self.spent_on = Some(so);
         self
     }
 }
 
+/// Holds a vector of [TimeEntryListItem](struct.TimeEntryList.html)s.
 #[derive(Deserialize, Debug)]
 pub struct TimeEntryList {
     time_entries: Vec<TimeEntryListItem>,
 }
 
+/// Represents a time entry as fetched from redmine application.
 #[derive(Deserialize, Debug)]
 pub struct TimeEntryListItem {
     pub activity: NamedObject,
