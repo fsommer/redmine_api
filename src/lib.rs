@@ -76,6 +76,12 @@ pub struct RedmineClient {
     apikey: String,
 }
 impl RedmineClient {
+    /// Creates new instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `host` - a string holding the redmine host url
+    /// * `apikey` - a string holding a valid redmine api key
     fn new(host: String, apikey: String) -> RedmineClient {
         RedmineClient {
             host: host,
