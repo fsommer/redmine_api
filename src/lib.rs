@@ -23,7 +23,7 @@ use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;
 
-/// This struct represents the entry point to the whole redmine api. It gets a host url and an api
+/// This struct represents the entry point to the stable redmine api. It gets a host url and an api
 /// key for instantiation and exposes all kind of different apis provided by redmine.
 ///
 /// # Example
