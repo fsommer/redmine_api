@@ -6,23 +6,22 @@
 
 #[macro_use]
 extern crate error_chain;
+extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
-
-extern crate reqwest;
 extern crate serde;
 
+pub mod errors;
 pub mod issues;
 pub mod time_entries;
-pub mod errors;
 
+use errors::*;
+use reqwest::header::Location;
+use reqwest::{Client, Response, Url};
+use serde::ser::Serialize;
 use std::collections::HashMap;
 use std::io::Read;
 use std::rc::Rc;
-use reqwest::{Client, Response, Url};
-use reqwest::header::Location;
-use serde::ser::Serialize;
-use errors::*;
 
 /// This struct represents the entry point to the whole redmine api. It gets a host url and an api
 /// key for instantiation and exposes all kind of different apis provided by redmine.
