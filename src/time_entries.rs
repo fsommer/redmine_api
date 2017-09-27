@@ -42,7 +42,9 @@ impl Api {
     ///
     /// # Arguments
     ///
-    /// * `time_entry` - a TimeEntry holding all information needed to create a time entry
+    /// * `issue_id` - an integer holding the issue id
+    /// * `hours` - an floating point number holding the spent hours
+    /// * `activity_id` - an integer holding the activity id
     ///
     /// # Example
     ///
@@ -55,16 +57,22 @@ impl Api {
     ///     "1234".to_string()
     /// );
     ///
-    /// let time_entry = TimeEntry::new(1, 0.2, 4)
+    /// let result = redmine.time_entries().create(1, 0.2, 4)
     ///     .comments("Hello World")
-    ///     .spent_on("2017-09-16");
-    ///
-    /// let result = redmine.time_entries().create(&time_entry);
+    ///     .spent_on("2017-09-16")
+    ///     .execute();
     /// ```
-    pub fn create(&self, time_entry: &TimeEntry) -> Result<String> {
-        self.client.create(
-            "/time_entries.json",
-            &CreateTimeEntry { time_entry: time_entry },
+    pub fn create(
+        &self,
+        issue_id: u32,
+        hours: f32,
+        activity_id: u32,
+    ) -> TimeEntryBuilder {
+        TimeEntryBuilder::for_create(
+            Rc::clone(&self.client),
+            issue_id,
+            hours,
+            activity_id,
         )
     }
 }
@@ -127,12 +135,6 @@ impl TimeEntryFilter {
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
-}
-
-/// Wraps a TimeEntry for serialization.
-#[derive(Serialize)]
-struct CreateTimeEntry<'a> {
-    time_entry: &'a TimeEntry<'a>,
 }
 
 /// Represents a time entry.
@@ -225,4 +227,84 @@ pub struct TimeEntryListItem {
     pub spent_on: String,
     pub created_on: String,
     pub updated_on: String,
+}
+
+
+/// Helper struct for serialization.
+#[derive(Serialize)]
+struct TimeEntryBuilderWrapper<'a> {
+    time_entry: &'a TimeEntryBuilder<'a>,
+}
+
+/// Struct to provide builder pattern for creation of time entries. Can be serialized to be used as
+/// json parameter for request to redmine application.
+#[derive(Debug, Default, Serialize)]
+pub struct TimeEntryBuilder<'a> {
+    // internal
+    #[serde(skip_serializing)]
+    client: Rc<RedmineClient>,
+
+    // fields used for serialization needed for creation
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issue_id: Option<u32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    hours: Option<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    activity_id: Option<u32>,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    spent_on: &'a str,
+    #[serde(skip_serializing_if = "str::is_empty")]
+    comments: &'a str,
+}
+impl<'a> TimeEntryBuilder<'a> {
+    /// Creates new instance for creation of a time entry. Function takes all mandatory parameters
+    /// for a new time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - an Rc boxed [RedmineClient](struct.RedmineClient.html)
+    /// * `issue_id` - an integer holding the issue id
+    /// * `hours` - an floating point number holding the spent hours
+    /// * `activity_id` - an integer holding the activity id
+    pub fn for_create(
+        client: Rc<RedmineClient>,
+        issue_id: u32,
+        hours: f32,
+        activity_id: u32,
+    ) -> Self {
+        TimeEntryBuilder {
+            client: client,
+
+            issue_id: Some(issue_id),
+            hours: Some(hours),
+            activity_id: Some(activity_id),
+            ..Default::default()
+        }
+    }
+
+    /// Sets spent on date for time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - string slice holding the spent on date
+    pub fn spent_on(mut self, s: &'a str) -> Self {
+        self.spent_on = s;
+        self
+    }
+
+    /// Sets comment for time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - string slice holding the comment
+    pub fn comments(mut self, s: &'a str) -> Self {
+        self.comments = s;
+        self
+    }
+
+    /// Performs request to redmine application to create a time entry.
+    pub fn execute(&self) -> Result<String> {
+        let te = TimeEntryBuilderWrapper { time_entry: self };
+        self.client.create("/time_entries.json", &te)
+    }
 }
