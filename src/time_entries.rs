@@ -30,12 +30,12 @@ impl Api {
     ///     "1234".to_string()
     /// );
     ///
-    /// let result = redmine.time_entries().list();
+    /// let result = redmine.time_entries().list().user_id(1).execute();
     /// ```
-    pub fn list(&self) -> Result<TimeEntryList> {
-        let result = self.client.get("/time_entries.json", &HashMap::new())?;
+    pub fn list(&self) -> TimeEntryFilter {
+        TimeEntryFilter::new(Rc::clone(&self.client))
+    }
 
-        serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 
     /// Creates a new time entry in the redmine application.
@@ -66,6 +66,66 @@ impl Api {
             "/time_entries.json",
             &CreateTimeEntry { time_entry: time_entry },
         )
+    }
+}
+
+/// Holds parameters the time entries in redmine application should be filtered by and implements
+/// builder pattern. Is used as return type by time_entries.list function.
+#[derive(Default)]
+pub struct TimeEntryFilter {
+    client: Rc<RedmineClient>,
+    user_id: Option<u32>,
+    project_id: Option<u32>,
+}
+impl TimeEntryFilter {
+    /// Creates new instance.
+    ///
+    /// # Arguments
+    ///
+    /// * `client` - a Rc boxed RedmineClient
+    fn new(client: Rc<RedmineClient>) -> Self {
+        TimeEntryFilter {
+            client: client,
+            ..Default::default()
+        }
+    }
+
+    /// Sets filter to get only time entries which belong to a specific user.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding a user id
+    pub fn user_id(&mut self, id: u32) -> &mut Self {
+        self.user_id = Some(id);
+        self
+    }
+
+    /// Sets filter to get only time entries which belong to a specific project.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding a project id
+    pub fn project_id(&mut self, id: u32) -> &mut Self {
+        self.project_id = Some(id);
+        self
+    }
+
+    /// Performs request to redmine application and returns a list of time entries matching the
+    /// filter parameters.
+    pub fn execute(&self) -> Result<TimeEntryList> {
+        let mut params: HashMap<&str, String> = HashMap::new();
+
+        if let Some(id) = self.user_id {
+            params.insert("user_id", id.to_string());
+        }
+
+        if let Some(id) = self.project_id {
+            params.insert("project_id", id.to_string());
+        }
+
+        let result = self.client.get("/time_entries.json", &params)?;
+
+        serde_json::from_str(&result).chain_err(|| "Can't parse json")
     }
 }
 
