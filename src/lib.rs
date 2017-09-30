@@ -15,6 +15,7 @@ pub mod errors;
 pub mod issues;
 pub mod projects;
 pub mod time_entries;
+pub mod users;
 
 use errors::*;
 use reqwest::header::Location;
@@ -43,6 +44,7 @@ pub struct RedmineApi {
     issues: issues::Api,
     projects: projects::Api,
     time_entries: time_entries::Api,
+    users: users::Api,
 }
 impl RedmineApi {
     /// Creates a new instance.
@@ -57,6 +59,7 @@ impl RedmineApi {
             issues: issues::Api::new(Rc::clone(&c)),
             projects: projects::Api::new(Rc::clone(&c)),
             time_entries: time_entries::Api::new(Rc::clone(&c)),
+            users: users::Api::new(Rc::clone(&c)),
         }
     }
 
@@ -73,6 +76,11 @@ impl RedmineApi {
     /// Provides time entries api.
     pub fn time_entries(&self) -> &time_entries::Api {
         &self.time_entries
+    }
+
+    /// Provides users api.
+    pub fn users(&self) -> &users::Api {
+        &self.users
     }
 }
 
