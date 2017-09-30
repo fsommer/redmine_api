@@ -134,15 +134,15 @@ impl TimeEntryFilter {
     }
 }
 
-/// Holds a vector of [TimeEntryListItem](struct.TimeEntryList.html)s.
+/// Holds a vector of [TimeEntry](struct.TimeEntry.html).
 #[derive(Deserialize, Debug)]
 pub struct TimeEntryList {
-    time_entries: Vec<TimeEntryListItem>,
+    time_entries: Vec<TimeEntry>,
 }
 
 /// Represents a time entry as fetched from redmine application.
 #[derive(Deserialize, Debug)]
-pub struct TimeEntryListItem {
+pub struct TimeEntry {
     pub activity: NamedObject,
     pub comments: String,
     pub hours: f32,
