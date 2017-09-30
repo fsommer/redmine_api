@@ -36,6 +36,32 @@ impl Api {
         TimeEntryFilter::new(Rc::clone(&self.client))
     }
 
+    /// Returns a single time entry by id.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding the id of the requested time entry
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use redmine_api::RedmineApi;
+    ///
+    /// let redmine = RedmineApi::new(
+    ///     "http://www.redmine.org/".to_string(),
+    ///     "1234".to_string()
+    /// );
+    ///
+    /// let result = redmine.time_entries().show(1).execute();
+    /// ```
+    pub fn show(&self, id: u32) -> TimeEntryShow {
+        TimeEntryShow {
+            client: Rc::clone(&self.client),
+            show_id: id,
+            ..Default::default()
+        }
+    }
+
     /// Creates a new time entry in the redmine application.
     ///
     /// # Arguments
@@ -141,7 +167,7 @@ pub struct TimeEntryList {
 }
 
 /// Represents a time entry as fetched from redmine application.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Default)]
 pub struct TimeEntry {
     pub activity: NamedObject,
     pub comments: String,
@@ -154,7 +180,38 @@ pub struct TimeEntry {
     pub created_on: String,
     pub updated_on: String,
 }
+impl From<TimeEntryShow> for TimeEntry {
+    fn from(item: TimeEntryShow) -> Self {
+        item.time_entry
+    }
+}
 
+/// Wrapper struct for deserialization of a single issue pulled from redmine application.
+#[derive(Deserialize, Debug, Default)]
+pub struct TimeEntryShow {
+    #[serde(skip_deserializing)]
+    client: Rc<RedmineClient>,
+    #[serde(skip_deserializing)]
+    show_id: u32,
+
+    // fields used for deserialization
+    time_entry: TimeEntry,
+}
+impl TimeEntryShow {
+    /// Performs request to redmine application and returns a single time entry.
+    pub fn execute(&self) -> Result<TimeEntry> {
+        let result = self.client.get(
+            &(format!("/time_entries/{}.json", self.show_id)),
+            &HashMap::new(),
+        )?;
+
+        Ok(
+            serde_json::from_str::<TimeEntryShow>(&result)
+                .chain_err(|| "Can't parse json")?
+                .into(),
+        )
+    }
+}
 
 /// Helper struct for serialization.
 #[derive(Serialize)]
