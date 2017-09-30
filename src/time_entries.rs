@@ -98,6 +98,32 @@ impl Api {
             activity_id,
         )
     }
+
+    /// Returns a TimeEntryBuilder and ultimately updates an existing time entry in redmine
+    /// application. The function takes the id of the time entry which should be updated.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding the id of the time entry which should be changed
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use redmine_api::RedmineApi;
+    ///
+    /// let redmine = RedmineApi::new(
+    ///     "http://www.redmine.org/".to_string(),
+    ///     "1234".to_string()
+    /// );
+    ///
+    /// let result = redmine.time_entries().update(1)
+    ///     .comments("another comment")
+    ///     .execute();
+    ///
+    /// ```
+    pub fn update(&self, id: u32) -> TimeEntryBuilder {
+        TimeEntryBuilder::for_update(Rc::clone(&self.client), id)
+    }
 }
 
 /// Holds parameters the time entries in redmine application should be filtered by and implements
@@ -227,6 +253,20 @@ struct TimeEntryBuilderWrapper<'a> {
     time_entry: &'a TimeEntryBuilder<'a>,
 }
 
+/// Enumeration for differentiation between creation and update.
+#[derive(Debug)]
+enum TimeEntryBuilderKind {
+    Create,
+    Update,
+}
+// TimeEntryBuilder implements Default trait, so TimeEntryBuilderKind has to implement Default,
+// too.
+impl Default for TimeEntryBuilderKind {
+    fn default() -> Self {
+        TimeEntryBuilderKind::Create
+    }
+}
+
 /// Struct to provide builder pattern for creation of time entries. Can be serialized to be used as
 /// json parameter for request to redmine application.
 #[derive(Debug, Default, Serialize)]
@@ -234,8 +274,12 @@ pub struct TimeEntryBuilder<'a> {
     // internal
     #[serde(skip_serializing)]
     client: Rc<RedmineClient>,
+    #[serde(skip_serializing)]
+    kind: TimeEntryBuilderKind,
+    #[serde(skip_serializing)]
+    update_id: u32,
 
-    // fields used for serialization needed for creation
+    // fields used for serialization
     #[serde(skip_serializing_if = "Option::is_none")]
     issue_id: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -273,6 +317,20 @@ impl<'a> TimeEntryBuilder<'a> {
         }
     }
 
+    /// Creates new instance for update of an time entry.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding the id of the time entry which should be changed
+    pub fn for_update(client: Rc<RedmineClient>, id: u32) -> Self {
+        TimeEntryBuilder {
+            client: client,
+            kind: TimeEntryBuilderKind::Update,
+            update_id: id,
+            ..Default::default()
+        }
+    }
+
     /// Sets spent on date for time entry.
     ///
     /// # Arguments
@@ -293,9 +351,20 @@ impl<'a> TimeEntryBuilder<'a> {
         self
     }
 
-    /// Performs request to redmine application to create a time entry.
+    /// Performs request to redmine application to create or update a time entry.
     pub fn execute(&self) -> Result<String> {
         let te = TimeEntryBuilderWrapper { time_entry: self };
-        self.client.create("/time_entries.json", &te)
+        match self.kind {
+            TimeEntryBuilderKind::Create => self.client.create("/time_entries.json", &te),
+            TimeEntryBuilderKind::Update => {
+                self.client.update(
+                    &(format!(
+                        "/time_entries/{}.json",
+                        self.update_id
+                    )),
+                    &te,
+                )
+            }
+        }
     }
 }
