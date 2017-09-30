@@ -114,6 +114,32 @@ impl Api {
     pub fn update(&self, id: u32) -> TimeEntryBuilder {
         TimeEntryBuilder::for_update(Rc::clone(&self.client), id)
     }
+
+    /// Returns TimeEntryDelete struct which offers an `execute` function which deletes the time
+    /// entry specified by `id` parameter.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - an integer holding the time entry id
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use redmine_api::RedmineApi;
+    ///
+    /// let redmine = RedmineApi::new(
+    ///     "http://www.redmine.org/".to_string(),
+    ///     "1234".to_string()
+    /// );
+    ///
+    /// let result = redmine.time_entries().delete(1).execute();
+    /// ```
+    pub fn delete(&self, id: u32) -> TimeEntryDelete {
+        TimeEntryDelete {
+            client: Rc::clone(&self.client),
+            delete_id: id,
+        }
+    }
 }
 
 /// Holds parameters the time entries in redmine application should be filtered by and implements
@@ -233,6 +259,23 @@ impl TimeEntryShow {
             serde_json::from_str::<TimeEntryShow>(&result)
                 .chain_err(|| "Can't parse json")?
                 .into(),
+        )
+    }
+}
+
+/// Helper struct to provide a unified interface for all time entry api methods.
+pub struct TimeEntryDelete {
+    client: Rc<RedmineClient>,
+    delete_id: u32,
+}
+impl TimeEntryDelete {
+    /// Performs request to redmine application and deletes a time entry.
+    pub fn execute(&self) -> Result<bool> {
+        self.client.delete(
+            &(format!(
+                "/time_entries/{}.json",
+                self.delete_id
+            )),
         )
     }
 }
