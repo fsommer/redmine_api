@@ -36,8 +36,6 @@ impl Api {
         TimeEntryFilter::new(Rc::clone(&self.client))
     }
 
-    }
-
     /// Creates a new time entry in the redmine application.
     ///
     /// # Arguments
@@ -50,7 +48,6 @@ impl Api {
     ///
     /// ```
     /// use redmine_api::RedmineApi;
-    /// use redmine_api::time_entries::TimeEntry;
     ///
     /// let redmine = RedmineApi::new(
     ///     "http://www.redmine.org/".to_string(),
@@ -134,77 +131,6 @@ impl TimeEntryFilter {
         let result = self.client.get("/time_entries.json", &params)?;
 
         serde_json::from_str(&result).chain_err(|| "Can't parse json")
-    }
-}
-
-/// Represents a time entry.
-#[derive(Default, Serialize)]
-pub struct TimeEntry<'a> {
-    issue_id: u32,
-    hours: f32,
-    activity_id: u8,
-    comments: &'a str,
-    spent_on: Option<&'a str>,
-}
-impl<'a> TimeEntry<'a> {
-    /// Creates a new TimeEntry.
-    pub fn new(issue_id: u32, hours: f32, activity_id: u8) -> Self {
-        TimeEntry {
-            issue_id: issue_id,
-            hours: hours,
-            activity_id: activity_id,
-            ..Default::default()
-        }
-    }
-
-    /// Sets issue id the time entry belongs to.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - an integer holding issue id
-    pub fn issue_id(mut self, id: u32) -> Self {
-        self.issue_id = id;
-        self
-    }
-
-    /// Sets amount of hours for the time entry.
-    ///
-    /// # Arguments
-    ///
-    /// `h` - a floating point number holding the amount of hours
-    pub fn hours(mut self, h: f32) -> Self {
-        self.hours = h;
-        self
-    }
-
-    /// Sets activity id of the time entry.
-    ///
-    /// # Arguments
-    ///
-    /// * `id` - an integer holding the id of the activity
-    pub fn activity_id(mut self, id: u8) -> Self {
-        self.activity_id = id;
-        self
-    }
-
-    /// Sets comment for the time entry.
-    ///
-    /// # Arguments
-    ///
-    /// * `c` - a string slice holding the comment
-    pub fn comments(mut self, c: &'a str) -> Self {
-        self.comments = c;
-        self
-    }
-
-    /// Sets date the time was spent on.
-    ///
-    /// # Arguments
-    ///
-    /// * `so` - a string slice holding the date, e.g. "2017-09-16"
-    pub fn spent_on(mut self, so: &'a str) -> Self {
-        self.spent_on = Some(so);
-        self
     }
 }
 
