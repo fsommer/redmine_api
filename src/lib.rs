@@ -13,6 +13,7 @@ extern crate serde;
 
 pub mod errors;
 pub mod issues;
+pub mod projects;
 pub mod time_entries;
 
 use errors::*;
@@ -40,6 +41,7 @@ use std::rc::Rc;
 /// ```
 pub struct RedmineApi {
     issues: issues::Api,
+    projects: projects::Api,
     time_entries: time_entries::Api,
 }
 impl RedmineApi {
@@ -53,6 +55,7 @@ impl RedmineApi {
         let c = Rc::new(RedmineClient::new(host, apikey));
         RedmineApi {
             issues: issues::Api::new(Rc::clone(&c)),
+            projects: projects::Api::new(Rc::clone(&c)),
             time_entries: time_entries::Api::new(Rc::clone(&c)),
         }
     }
@@ -60,6 +63,11 @@ impl RedmineApi {
     /// Provides issues api.
     pub fn issues(&self) -> &issues::Api {
         &self.issues
+    }
+
+    /// Provides projects api.
+    pub fn projects(&self) -> &projects::Api {
+        &self.projects
     }
 
     /// Provides time entries api.
