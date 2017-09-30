@@ -8,6 +8,8 @@ fn main() {
         "bbde69d1999dde8f497199f49bb7b577389b6c0e".to_string(),
     );
 
-    let result = redmine.time_entries().list().user_id(1).execute();
-    println!("Result: {:?}", result);
+    let result = redmine.time_entries().list().user_id(1).execute().unwrap();
+    for item in result {
+        println!("ID: {:?}", item.id);
+    }
 }

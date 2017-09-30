@@ -165,6 +165,14 @@ impl TimeEntryFilter {
 pub struct TimeEntryList {
     time_entries: Vec<TimeEntry>,
 }
+impl IntoIterator for TimeEntryList {
+    type Item = TimeEntry;
+    type IntoIter = ::std::vec::IntoIter<TimeEntry>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.time_entries.into_iter()
+    }
+}
 
 /// Represents a time entry as fetched from redmine application.
 #[derive(Deserialize, Debug, Default)]
