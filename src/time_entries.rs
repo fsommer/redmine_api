@@ -85,18 +85,8 @@ impl Api {
     ///     .spent_on("2017-09-16")
     ///     .execute();
     /// ```
-    pub fn create(
-        &self,
-        issue_id: u32,
-        hours: f32,
-        activity_id: u32,
-    ) -> TimeEntryBuilder {
-        TimeEntryBuilder::for_create(
-            Rc::clone(&self.client),
-            issue_id,
-            hours,
-            activity_id,
-        )
+    pub fn create(&self, issue_id: u32, hours: f32, activity_id: u32) -> TimeEntryBuilder {
+        TimeEntryBuilder::for_create(Rc::clone(&self.client), issue_id, hours, activity_id)
     }
 
     /// Returns a TimeEntryBuilder and ultimately updates an existing time entry in redmine
